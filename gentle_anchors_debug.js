@@ -31,7 +31,7 @@ scope.Gentle_Anchors = function() {
 	var debugTxt = '';
 	var debugCount = 0, debugI = 0, debugII = 0;
 	var ua = navigator.userAgent;
-	var isDebug = /10_7.*Safari/.test(ua); // Mac OS 10.8 Safari
+	var isDebug = /10_8.*Safari/.test(ua); // Mac OS 10.8 Safari
 	var logDebug = function(txt) {
 		if (isDebug && debugCount++ < 4) {
 			AjaxCall({
