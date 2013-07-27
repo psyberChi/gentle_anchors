@@ -8,7 +8,7 @@
 * Description: Gentle Anchors is a page scrolling script for anchor and area tags on a page.
 * License:
 	This work is licensed under a Creative Commons Attribution-Share Alike
-	3.0 United States License 
+	3.0 United States License
 	http://creativecommons.org/licenses/by-sa/3.0/us/
 *******************************************************************************/
 Gentle_Anchors = function() {
@@ -111,7 +111,7 @@ Gentle_Anchors = function() {
 		elt.style.outline = oldOutline;
 	};
 	// Classic append for onload event to avoid overriding
-	function appendOnLoad(fx) { 
+	function appendOnLoad(fx) {
 		try { // For browsers that know DOMContentLoaded (FF, Safari, Opera)
 			document.addEventListener('DOMContentLoaded', fx, false);
 		} catch(e) { // for IE and older browser
