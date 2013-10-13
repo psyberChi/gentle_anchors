@@ -26,17 +26,18 @@ scope.Gentle_Anchors = function() {
 		elt = null, // the current clicked on element
 		// Get the current URL page
 		curPage = location.href.split('?')[0].split('#')[0],
-		anchorOnPage = new RegExp("^" + curPage + "#[a-zA-Z0-9:\._-]+");
+		anchorOnPage = new RegExp("^" + curPage + "#[a-zA-Z0-9:\._-]+"),
+		ctr;
 
 	var debugTxt = '';
 	var debugCount = 0, debugI = 0, debugII = 0;
 	var ua = navigator.userAgent;
-	var isDebug = /10_8.*Safari/.test(ua); // Mac OS 10.8 Safari
+	var isDebug = /Safari/.test(ua);
 	var logDebug = function(txt) {
 		if (isDebug && debugCount++ < 4) {
 			AjaxCall({
 				'method': 'post',
-				'url': '/includes/logit.php',
+				'url': '/utils/logit.php',
 				'data': 'msg=' + encodeURI(ua + ',' + txt)
 			});
 		}
@@ -109,6 +110,7 @@ scope.Gentle_Anchors = function() {
 		else {
 			return true;
 		}
+		ctr = 0;
 		// Find scroll position to destination
 		var dest = elt.offsetTop;
 		for (var node = elt;
@@ -129,10 +131,12 @@ scope.Gentle_Anchors = function() {
 		location.hash = hash;     // jump to destination
 		window.scrollTo(0, start); // then quickly jump back to scroll the distance
 		var speed = parseInt(Math.abs(start-dest) / scrollSpeed);
+		// minus 10 for padding
+		dest = Math.max((dest - 10), 0);
 		if (isDebug) {
 			debugTxt += printf(', startY: %1, speed: %2, dest: %3\n', start, speed, dest);
 		}
-		Scroll(speed, (dest-10));   // minus 10 for padding
+		Scroll(speed, dest);
 		return false;
 	};
 
@@ -143,16 +147,16 @@ scope.Gentle_Anchors = function() {
 		if (isDebug) {
 			debugTxt += printf('%1.%2. ', debugI, ++debugII);
 		}
-		var doc = document,
-			was = getPageY(),
+		step = Math.max(step, 1); // don't go below 1
+		var was = getPageY(),
 			// find out how much to scroll by up/down
-			amt = (was < desty) ? was + step : was - step;
+			amt = Math.round((was < desty) ? was + step : was - step);
 
 		if (isDebug) {
 			debugTxt += printf(', was: %1, amt: %2', was, amt.toFixed(1));
 		}
 		// Make sure we didn't go past
-		if (Math.abs(was-desty) < step) {
+		if (Math.abs(was - desty) < step || amt < 0) {
 			amt = desty;
 		}
 		if (isDebug) {
@@ -161,29 +165,31 @@ scope.Gentle_Anchors = function() {
 		window.scrollTo(0, amt);
 		var now = getPageY(),
 			// slow scroll down as approach
-			diff = Math.abs(now-desty);
-		// Less than one doesn't add well
-		if (diff < 1) {
-			step = 1;
-		}
-		else if (diff < step * 2) {
+			diff = Math.abs(now - desty);
+		if (diff < step * 2) {
 			step *= .6;
 		}
 		else if (diff < step * 6) {
 			step *= .9;
 		}
+		// Less than one doesn't add well
+		if (diff < 1) {
+			step = 1;
+		}
+
 		if (isDebug) {
-			debugTxt += ', now: ' + now + "\n";
+			debugTxt += ', step: ' + step.toFixed(1) + ', now: ' + now + "\n";
 		}
 		// if we're at the right scroll position
-		if (was == now) {
+		// ctr ensures we don't end up forever land
+		if (Math.abs(now - desty) < 1 || ++ctr >= 35) {
 			window.scrollTo(0, desty);
 			clearTimeout(timer); // clear interval
 			logDebug(debugTxt);
 			if (shine) {
 				setTimeout(function(){
 					ShineOn();
-				}, 400);
+				}, 200);
 			}
 			return;
 		}
@@ -196,12 +202,13 @@ scope.Gentle_Anchors = function() {
 	 * Returns the current offset from the top of the page.
 	 */
 	var getPageY = function() {
-		var doc = document;
+		var d = document;
 		if (isDebug) {try{
-			debugTxt += printf('(yo: %1, t1: %2, t2: %3)', window.pageYOffset, doc.documentElement.scrollTop, doc.body.scrollTop);
+			debugTxt += printf('(yo: %1, t1: %2, t2: %3)', window.pageYOffset, d.documentElement.scrollTop, d.body.scrollTop);
 			}catch(e){}
 		}
-		return window.pageYOffset || doc.documentElement.scrollTop || doc.body.scrollTop;
+		//return window.pageYOffset || (d.documentElement || d.body).scrollTop;
+		return ('pageYOffset' in window) ? pageYOffset : (d.documentElement || d.body.parentNode || d.body).scrollTop;
 	};
 
 	/**
