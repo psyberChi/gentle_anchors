@@ -32,7 +32,7 @@ scope.Gentle_Anchors = function() {
 	var debugTxt = '';
 	var debugCount = 0, debugI = 0, debugII = 0;
 	var ua = navigator.userAgent;
-	var isDebug = /Safari/.test(ua);
+	var isDebug = true;///Safari/.test(ua) && !/Chrome/.test(ua);
 	var logDebug = function(txt) {
 		if (isDebug && debugCount++ < 4) {
 			AjaxCall({
@@ -147,7 +147,7 @@ scope.Gentle_Anchors = function() {
 		if (isDebug) {
 			debugTxt += printf('%1.%2. ', debugI, ++debugII);
 		}
-		step = Math.max(step, 1); // don't go below 1
+		step = Math.max(step, 2); // don't go below 2
 		var was = getPageY(),
 			// find out how much to scroll by up/down
 			amt = Math.round((was < desty) ? was + step : was - step);
@@ -163,39 +163,41 @@ scope.Gentle_Anchors = function() {
 			debugTxt += printf(', to: %1, ', amt.toFixed(1));
 		}
 		window.scrollTo(0, amt);
-		var now = getPageY(),
-			// slow scroll down as approach
-			diff = Math.abs(now - desty);
-		if (diff < step * 2) {
-			step *= .6;
-		}
-		else if (diff < step * 6) {
-			step *= .9;
-		}
-		// Less than one doesn't add well
-		if (diff < 1) {
-			step = 1;
-		}
-
-		if (isDebug) {
-			debugTxt += ', step: ' + step.toFixed(1) + ', now: ' + now + "\n";
-		}
-		// if we're at the right scroll position
-		// ctr ensures we don't end up forever land
-		if (Math.abs(now - desty) < 1 || ++ctr >= 35) {
-			window.scrollTo(0, desty);
-			clearTimeout(timer); // clear interval
-			logDebug(debugTxt);
-			if (shine) {
-				setTimeout(function(){
-					ShineOn();
-				}, 200);
+		setTimeout(function(){
+			var now = getPageY(),
+				// slow scroll down as approach
+				diff = Math.abs(now - desty);
+			if (diff < step * 2) {
+				step *= .6;
 			}
-			return;
-		}
-		timer = setTimeout(function() {
-			Scroll(step, desty);
-		}, 30);
+			else if (diff < step * 6) {
+				step *= .9;
+			}
+			// Less than one doesn't add well
+			if (step < 1) {
+				step = 1;
+			}
+
+			if (isDebug) {
+				debugTxt += ', step: ' + step.toFixed(1) + ', now: ' + now + "\n";
+			}
+			// if we're at the right scroll position
+			// ctr ensures we don't end up in forever land
+			if (Math.abs(now - desty) < 1 || ++ctr >= 28) {
+				window.scrollTo(0, desty);
+				clearTimeout(timer); // clear interval
+				logDebug(debugTxt);
+				if (shine) {
+					setTimeout(function(){
+						ShineOn();
+					}, 200);
+				}
+				return;
+			}
+			timer = setTimeout(function() {
+				Scroll(step, desty);
+			}, 30);
+		}, 1);
 	};
 
 	/**
@@ -204,11 +206,11 @@ scope.Gentle_Anchors = function() {
 	var getPageY = function() {
 		var d = document;
 		if (isDebug) {try{
-			debugTxt += printf('(yo: %1, t1: %2, t2: %3)', window.pageYOffset, d.documentElement.scrollTop, d.body.scrollTop);
+			debugTxt += printf('(yo: %1, t1: %2)', window.pageYOffset, d.body.scrollTop);
 			}catch(e){}
 		}
 		//return window.pageYOffset || (d.documentElement || d.body).scrollTop;
-		return ('pageYOffset' in window) ? pageYOffset : (d.documentElement || d.body.parentNode || d.body).scrollTop;
+		return ('pageYOffset' in window) ? pageYOffset : (d.documentElement || d.body).scrollTop;
 	};
 
 	/**
