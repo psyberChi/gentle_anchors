@@ -63,7 +63,6 @@ scope.Gentle_Anchors = function() {
 						continue LBL;
 					}
 				}
-				console.info('Match: ' + links[x].href);
 				if (window.addEventListener) {
 					links[x].addEventListener('click', fxLinkClick, true);
 				}
